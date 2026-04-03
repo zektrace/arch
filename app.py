@@ -1,19 +1,14 @@
-from bot import main as run_bot
-from flask import Flask
-import threading
-import logging
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from threading import Thread
 
-app = Flask(__name__)
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
 
-@app.route('/')
-def health_check():
-    return "bot running 24/7", 200
+def run_health_server():
+    server = HTTPServer(('0.0.0.0', 8080), HealthHandler)
+    server.serve_forever()
 
-def start_flask():
-    app.run(host='0.0.0.0', port=8080)
-
-if __name__ == '__main__':
-    flask_thread = threading.Thread(target=start_flask)
-    flask_thread.start()
-
-    run_bot()
+Thread(target=run_health_server, daemon=True).start()
